@@ -23,7 +23,7 @@ library(traipse)
 theme_set(theme_bw())
 ```
 
-Navionics GPs track of the Sicily eolian island trip.
+Navionics GPs track of the Bahamals Exhuma island trip.
 
 ::: panel-tabset
 ## Hide {.unnumbered}
@@ -58,11 +58,12 @@ df <- data.frame(
   lat = as.numeric(coords[, "lat"]),
   lon = as.numeric(coords[, "lon"]),
   date = lubridate::as_date(date_time),
-  time = lubridate::ymd_hms(date_time)
+  time_utc = lubridate::ymd_hms(date_time)
   #kts = as.numeric(speed) * 1.944,
   #elevation = as.numeric(elevation)
   ) |> # convert from m/s to knots 
   arrange(date_time) |>
+  mutate(time = lubridate::with_tz(time_utc, tzone = "America/Nassau")) |>
   mutate(lat_smooth = runner::runner(lat, k = smoothing_window, idx = time,
                                    f = function(x) median(x, na.rm = TRUE)),
          lon_smooth = runner::runner(lon, k = smoothing_window, idx = time,
@@ -158,7 +159,10 @@ leaflet() |>
   addPolylines(data = df_1min, lat = ~lat, lng = ~lon, 
                color = "#000000", opacity = 0.8, weight = 3) |>
   leaflet::addAwesomeMarkers(
-    data = df_1hour, lat = ~lat, lng = ~lon, label = ~as.character(hour(time))) #|>
+    data = df_1hour, lat = ~lat, lng = ~lon, 
+    label = ~paste0(as.character(date), " ",
+                   as.character(hour(time)), ":", 
+                   as.character(minute(time)))) #|>
   # leaflet::addAwesomeMarkers(
   #   data = df[outlier_area, ], lat = ~lat, lng = ~lon,
   #   label = ~as.character(hour(time)), 
@@ -177,7 +181,10 @@ leaflet() |>
   addPolylines(data = df, lat = ~lat, lng = ~lon, 
                color = "#000000", opacity = 0.8, weight = 3) |>
   leaflet::addAwesomeMarkers(
-    data = df_1hour, lat = ~lat, lng = ~lon, label = ~as.character(hour)) #|>
+    data = df_1hour, lat = ~lat, lng = ~lon, 
+    label = ~paste0(as.character(date), " ",
+               as.character(hour(time)), ":", 
+               as.character(minute(time)))) #|>
   # leaflet::addAwesomeMarkers(
   #   data = df[outlier_area, ], lat = ~lat, lng = ~lon,
   #   label = ~as.character(hour(time)), 
@@ -196,7 +203,10 @@ leaflet() |>
   addPolylines(data = df, lat = ~lat_smooth, lng = ~lon, 
                color = "#000000", opacity = 0.8, weight = 3) |>
   leaflet::addAwesomeMarkers(
-    data = df_1hour, lat = ~lat, lng = ~lon, label = ~as.character(hour)) #|>
+    data = df_1hour, lat = ~lat, lng = ~lon,
+    label = ~paste0(as.character(date), " ",
+               as.character(hour(time)), ":", 
+               as.character(minute(time)))) #|>
   # leaflet::addAwesomeMarkers(
   #   data = df[outlier_area, ], lat = ~lat, lng = ~lon,
   #   label = ~as.character(hour(time)), 
