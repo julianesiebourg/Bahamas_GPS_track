@@ -92,7 +92,8 @@ outlier <- which(df$segments_full > .5)
 outlier_area <- c(outlier, outlier-1) |> sort()
 
 df_1min <- df |>
-  dplyr::filter(second(time) < 1) |>
+  mutate(time = lubridate::round_date(time, "1 minute")) |> 
+  group_by(time) |> slice(1) |> ungroup() |>
   mutate(cog = track_bearing(lat_smooth, lon_smooth),
          cog = ifelse(cog < 0, cog + 360, cog)
   ) |>
@@ -113,7 +114,8 @@ df_1min <- df_1min |>
   ungroup()
 
 df_10min <- df_1min |>
-  dplyr::filter(second(time) <1, minute(time) %% 10 == 0) |>
+  mutate(time = lubridate::round_date(time, "10 minutes")) |> 
+  group_by(time) |> slice(1) |> ungroup() |>
   mutate(cog = track_bearing(lat_smooth, lon_smooth),
          cog = ifelse(cog < 0, cog + 360, cog)) 
 
