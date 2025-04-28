@@ -17,6 +17,7 @@ library(XML)
 library(lubridate)
 library(celestial)
 library(leaflet)
+library(leaflet.extras)
 library(tidyverse)
 library(traipse)
 
@@ -156,12 +157,27 @@ df_1hour <- df_10min |> mutate(hour = hour(time)) |>
 #| fig-width: 5
 #| fig-height: 5.5
 
+#cols <- RColorBrewer::brewer.pal(df_1hour$date |> unique() |> length(), "Set3")
+cols <- c("darkred", "orange", "lightgreen", "darkgreen", "cadetblue", "blue", "purple")
+names(cols) <- df_1hour$date |> unique()
+
+df_1hour <- df_1hour |>
+  mutate(marker_color = unname(cols[as.character(date)]))
+
+icons <- awesomeIcons(
+  icon = 'circle',
+  iconColor = 'white',
+  library = 'fa',
+  markerColor = df_1hour$marker_color
+)
+
 leaflet() |>
   addTiles() |>
   addPolylines(data = df_1min, lat = ~lat, lng = ~lon, 
                color = "#000000", opacity = 0.8, weight = 3) |>
   leaflet::addAwesomeMarkers(
     data = df_1hour, lat = ~lat, lng = ~lon, 
+    icon = ~icons, 
     label = ~paste0(as.character(date), " ",
                    as.character(hour(time)), ":", 
                    as.character(minute(time)))) #|>
@@ -184,6 +200,7 @@ leaflet() |>
                color = "#000000", opacity = 0.8, weight = 3) |>
   leaflet::addAwesomeMarkers(
     data = df_1hour, lat = ~lat, lng = ~lon, 
+    icon = ~icons, 
     label = ~paste0(as.character(date), " ",
                as.character(hour(time)), ":", 
                as.character(minute(time)))) #|>
@@ -206,6 +223,7 @@ leaflet() |>
                color = "#000000", opacity = 0.8, weight = 3) |>
   leaflet::addAwesomeMarkers(
     data = df_1hour, lat = ~lat, lng = ~lon,
+    icon = ~icons, 
     label = ~paste0(as.character(date), " ",
                as.character(hour(time)), ":", 
                as.character(minute(time)))) #|>
