@@ -58,14 +58,13 @@ smoothing_window <- "30 sec"
 df <- data.frame(
   lat = as.numeric(coords[, "lat"]),
   lon = as.numeric(coords[, "lon"]),
-  time = lubridate::ymd_hms(date_time)
+  # convert from UTC to right timezone
+  time = lubridate::ymd_hms(date_time) |> lubridate::with_tz(tzone = "America/Nassau")
   #kts = as.numeric(speed) * 1.944,
   #elevation = as.numeric(elevation)
   ) |> # convert from m/s to knots 
   arrange(time) |>
-  # convert from UTC to right timezone
-  mutate(time = lubridate::with_tz(time, tzone = "America/Nassau")) |>
-  mutate(date = lubridate::as_date(time)) |>
+  mutate(date = lubridate::as_date(time), .before = time) |>
   mutate(lat_smooth = runner::runner(lat, k = smoothing_window, idx = time,
                                    f = function(x) median(x, na.rm = TRUE)),
          lon_smooth = runner::runner(lon, k = smoothing_window, idx = time,
@@ -141,14 +140,13 @@ df_1hour <- df_10min |> mutate(hour = hour(time)) |>
   group_by(date, hour) |>
   slice(1) |>
   ungroup() |> arrange(time)
-  #dplyr::filter(minute(time) == 0, second(time) < 1) 
 ```
 :::
 
 # Trip overview
 
--   Blue markers are the positions at the full hour for approximate logbook entries.
--   Red markers show beginning and end of missing segments.
+-   Markers are the positions at the full hour for approximate logbook entries.
+-   Different colors indicate different days
 
 ::: panel-tabset
 ## Minute wise data
