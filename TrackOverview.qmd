@@ -281,7 +281,7 @@ df_1min |>
 
 # Distance
 
-Checking Cumulative Miles in total and per day. The full track shows missing segments, marked in red in the full data route above.
+Cumulative miles in total and per day. 
 
 ::: panel-tabset
 ## 10 min thinning
@@ -298,9 +298,9 @@ df_10min |>
   ggplot(aes(x = time, y = dist_day)) + geom_point() + geom_line()
 ```
 
-## full data
+## segments in full data
 
-missing segments
+The full track shows missing segments, marked in red in the full data route above.
 
 ```{r distance_full}
 #| warning: false
