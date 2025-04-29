@@ -58,13 +58,14 @@ smoothing_window <- "30 sec"
 df <- data.frame(
   lat = as.numeric(coords[, "lat"]),
   lon = as.numeric(coords[, "lon"]),
-  date = lubridate::as_date(date_time),
-  time_utc = lubridate::ymd_hms(date_time)
+  time = lubridate::ymd_hms(date_time)
   #kts = as.numeric(speed) * 1.944,
   #elevation = as.numeric(elevation)
   ) |> # convert from m/s to knots 
-  arrange(date_time) |>
-  mutate(time = lubridate::with_tz(time_utc, tzone = "America/Nassau")) |>
+  arrange(time) |>
+  # convert from UTC to right timezone
+  mutate(time = lubridate::with_tz(time, tzone = "America/Nassau")) |>
+  mutate(date = lubridate::as_date(time)) |>
   mutate(lat_smooth = runner::runner(lat, k = smoothing_window, idx = time,
                                    f = function(x) median(x, na.rm = TRUE)),
          lon_smooth = runner::runner(lon, k = smoothing_window, idx = time,
@@ -74,6 +75,7 @@ df <- data.frame(
     segments_full = track_distance(lat, lon) / 1852, # convert from meters to nm
     segments_full_smooth = track_distance(lat_smooth, lon_smooth) / 1852, # convert from meters to nm
   ) 
+
 df$segments_full[1] <- 0
 df$segments_full_smooth[1] <- 0
 df <- df |>
@@ -95,9 +97,8 @@ outlier_area <- c(outlier, outlier-1) |> sort()
 df_1min <- df |>
   mutate(time = lubridate::round_date(time, "1 minute")) |> 
   group_by(time) |> slice(1) |> ungroup() |>
-  mutate(cog = track_bearing(lat_smooth, lon_smooth),
-         cog = ifelse(cog < 0, cog + 360, cog)
-  ) |>
+  mutate(cog = track_bearing(lon_smooth, lat_smooth),
+        cog = ifelse(cog < 0, cog + 360, cog)) |>
   mutate(
     segment = track_distance(lat, lon) / 1852, # convert from meters to nm
     segment_sm = track_distance(lat_smooth, lon_smooth) / 1852, # convert from meters to nm
@@ -117,9 +118,8 @@ df_1min <- df_1min |>
 df_10min <- df_1min |>
   mutate(time = lubridate::round_date(time, "10 minutes")) |> 
   group_by(time) |> slice(1) |> ungroup() |>
-  mutate(cog = track_bearing(lat_smooth, lon_smooth),
-         cog = ifelse(cog < 0, cog + 360, cog)) 
-
+  mutate(cog10 = track_bearing(lon_smooth, lat_smooth),
+         cog10 = ifelse(cog < 0, cog + 360, cog))
 ```
 
 ```{r, include=FALSE}
